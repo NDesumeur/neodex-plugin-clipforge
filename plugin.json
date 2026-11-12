@@ -1,0 +1,27 @@
+{
+  "id": "neodex.clipforge",
+  "name": "ClipForge",
+  "version": "1.0.0",
+  "author": "NDesumeur",
+  "description": "L'atelier de texte : empile des étapes (majuscules, camelCase, sans accents, trier et dédoublonner les lignes, remplacer avec ou sans expression régulière, extraire, joindre, Base64, URL, HTML, JSON…) et le résultat se met à jour en direct pendant que tu tapes. Les recettes se gardent pour être rejouées. Et des modèles de texte à trous ({nom}, {date}…) à remplir puis copier.",
+  "icon": "icon.png",
+  "entry": "index.js",
+  "view": "clipforge",
+  "neobase": ">=4.0.0",
+  "type": "app",
+  "category": "Outils",
+  "mobile": true,
+  "compatibility": [
+    "windows",
+    "android",
+    "linux"
+  ],
+  "syncMode": "fusion",
+  "syncInfo": "Le texte en cours, les recettes et les modèles.",
+  "system": false,
+  "dependencies": {},
+  "sdk": "2.1.0",
+  "permissions": [
+    "storage"
+  ]
+}
