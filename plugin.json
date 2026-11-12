@@ -1,9 +1,9 @@
 {
   "id": "neodex.clipforge",
   "name": "ClipForge",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "author": "NDesumeur",
-  "description": "L'atelier de texte : empile des étapes (majuscules, camelCase, sans accents, trier et dédoublonner les lignes, remplacer avec ou sans expression régulière, extraire, joindre, Base64, URL, HTML, JSON…) et le résultat se met à jour en direct pendant que tu tapes. Les recettes se gardent pour être rejouées. Et des modèles de texte à trous ({nom}, {date}…) à remplir puis copier.",
+  "description": "Le monteur vidéo : importe des vidéos, des images et des sons, pose-les sur une timeline à 5 pistes (deux de vidéo, une de textes, deux de son), coupe, déplace et rogne à la souris. Transitions (fondu, glisse, zoom, volet), textes animés, effets de couleur, flou et pixels, vitesse de ×0,25 à ×4, volume et fondus du son. Format paysage, portrait ou carré, et export du montage en vidéo WebM.",
   "icon": "icon.png",
   "entry": "index.js",
   "view": "clipforge",
@@ -17,7 +17,7 @@
     "linux"
   ],
   "syncMode": "fusion",
-  "syncInfo": "Le texte en cours, les recettes et les modèles.",
+  "syncInfo": "Le montage (clips, réglages) et les médias de 15 Mo au plus.",
   "system": false,
   "dependencies": {},
   "sdk": "2.1.0",

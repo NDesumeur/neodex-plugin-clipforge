@@ -1,28 +1,51 @@
 # ClipForge
 
-L'atelier de texte : des étapes empilées qui transforment ton texte en direct, et des modèles à trous.
+Le monteur vidéo de NeoDex : une timeline à plusieurs pistes, des transitions, des textes, des effets, et l'export en vidéo.
 
 *English version: [README.en.md](README.en.md)*
 
 ![ClipForge](screenshots/1.jpg)
 
-## Transformer
+## Monter
 
-À gauche le texte d'entrée, au milieu la recette, à droite le résultat, mis à jour à chaque touche. Une recette est une suite d'étapes appliquées dans l'ordre :
+- **Importer** des vidéos, des images et des sons (ou les glisser sur ClipForge), puis cliquer sur un média pour le poser au bout de sa piste.
+- **Cinq pistes** :
+  - **Textes**, par-dessus tout ;
+  - **Vidéo 2**, par-dessus Vidéo 1 (pour une incrustation, réduis sa taille) ;
+  - **Vidéo 1** ;
+  - **Son 1** et **Son 2**, pour la musique et les bruitages.
+- **Glisser un clip** le déplace, aussi vers une autre piste du même genre. **Glisser ses bords** le rogne. Les clips s'aimantent au début, à la tête de lecture et aux bords des autres clips.
+- **Couper** (S) coupe le clip choisi sous la tête de lecture, ou tous les clips sous elle si aucun n'est choisi.
+- Le carré devant chaque piste la coupe ou la remet.
+- **Annuler** et **Rétablir** (Ctrl+Z, Ctrl+Y) reviennent sur chaque changement.
 
-- **casse** : MAJUSCULES, minuscules, Chaque Mot, début de phrase, camelCase, PascalCase, snake_case, kebab-case, CONSTANTE, slug d'URL, sans accents ;
-- **lignes** : espaces en bord de ligne ou en double, lignes vides, lignes en double, trier (A → Z avec les nombres dans le bon ordre, ou par longueur), inverser, numéroter, garder ou retirer les lignes qui contiennent un texte ;
-- **chercher** : remplacer, extraire, couper en lignes, joindre les lignes, entourer chaque ligne. Écris `/motif/` pour une expression régulière (`$1` dans le remplacement, `\n` pour un retour à la ligne) ;
-- **encodages** : Base64 (accents et émojis compris), URL, HTML, JSON indenté ou compact.
+## Régler un clip
 
-Une étape qui échoue (un JSON mal formé par exemple) s'encadre en rose avec l'erreur. Les recettes se gardent sous un nom pour être rejouées. **Reprendre en entrée** repart du résultat, **↓ .txt** l'enregistre.
+Clique sur un clip pour ouvrir ses réglages :
 
-## Modèles
+- **entrée** : fondu, glisse, zoom ou volet, avec sa durée, et un **fondu de sortie** ;
+- **taille**, **position** et **remplir le cadre** pour les images et les vidéos ;
+- **effets** : luminosité, contraste, saturation, noir et blanc, sépia, teinte, flou, pixels, et des looks d'un clic (Noir et blanc, Ancien, Vif, Froid, Nuit, Rétro pixel) ;
+- **vitesse** de ×0,25 à ×4 et **volume** jusqu'à 200 % pour les vidéos et les sons ;
+- **textes** : plusieurs lignes, police, couleur, taille, fond sombre.
 
-Des textes à trous : écris `{nom}`, `{sujet}`… et un champ apparaît pour chacun. `{date}`, `{heure}` et `{jour}` se remplissent tout seuls. Trois modèles pour commencer (relance par mail, rapport de bug, compte rendu).
+## Exporter
 
-L'historique de ce que tu copies est dans un autre plugin : **Presse-papiers**.
+Choisis le **format** (paysage 16:9, portrait 9:16 ou carré 1:1), puis **Exporter en WebM**. Le montage est filmé en temps réel avec ses sons mixés : garde ClipForge ouvert jusqu'au bout. La vidéo arrive dans tes Téléchargements.
+
+## Commandes
+
+| Touche | Action |
+|---|---|
+| Espace | lecture / pause |
+| S | couper sous la tête de lecture |
+| Suppr | effacer le clip choisi |
+| ← → | image précédente / suivante |
+| Origine | revenir au début |
+| Ctrl+Z / Ctrl+Y | annuler / rétablir |
 
 ## Données
 
-Le texte en cours, les recettes et les modèles sont gardés dans le dossier du plugin. Autorisation : `storage` seulement (le bouton **Coller** demande l'accès au presse-papiers ; sinon, Ctrl+V).
+Le montage est gardé dans le dossier du plugin, avec les médias de 15 Mo au plus. Un média plus gros reste dans la liste mais il faut le choisir à nouveau à la prochaine ouverture (il est marqué « À réimporter »). Autorisation : `storage` seulement.
+
+Les recettes et modèles de texte de l'ancienne version de ClipForge ne sont plus utilisés ; ils restent dans le dossier du plugin.
