@@ -1,0 +1,9 @@
+{
+  "pluginId": "neodex.clipforge",
+  "repo": "NDesumeur/neodex-plugin-clipforge",
+  "version": "1.0.0",
+  "sha256": "b6b55ae2d18c55c0824f0ccb88ba71d158387a9cda7553b99a21a66e4d4e232b",
+  "approvedAt": "2026-11-12T06:35:38.139Z",
+  "neobase": ">=4.0.0",
+  "signature": "QMzyDAseV+iFLevSOQfjxn2j1++RQJItzRDiER8vZimeSG93Vl+zBICVPx64xCXf+pSrTfAkpa4hbmszNWfFCQ=="
+}
