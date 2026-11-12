@@ -1,9 +1,9 @@
 {
   "id": "neodex.clipforge",
   "name": "ClipForge",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "author": "NDesumeur",
-  "description": "Le monteur vidéo : importe des vidéos, des images et des sons, pose-les sur une timeline à 5 pistes (deux de vidéo, une de textes, deux de son), coupe, déplace et rogne à la souris. Transitions (fondu, glisse, zoom, volet), textes animés, effets de couleur, flou et pixels, vitesse de ×0,25 à ×4, volume et fondus du son. Format paysage, portrait ou carré, et export du montage en vidéo WebM.",
+  "description": "Le monteur vidéo façon CapCut : timeline à 8 pistes (textes, effets, incrustation, vidéo, sons, musique) avec pellicule et formes d'onde, 13 transitions, mouvements, 14 filtres, 16 effets (VHS, glitch, grain, confettis…), textes stylés et animés, autocollants, fond flou, image figée, son détaché, vitesse ×0,1 à ×8. Export WebM ou MP4 jusqu'en 1080p et 60 images/s, en 16:9, 9:16, 1:1, 4:5, 4:3 ou 21:9.",
   "icon": "icon.png",
   "entry": "index.js",
   "view": "clipforge",

@@ -1,37 +1,39 @@
 # ClipForge
 
-NeoDex's video editor: a multi-track timeline, transitions, texts, effects, and video export.
+NeoDex's video editor, in the spirit of CapCut: an 8-track timeline, 13 transitions, styled and animated texts, stickers, 16 effects, 14 filters, and video export.
 
 *Version française : [README.md](README.md)*
 
 ![ClipForge](screenshots/1.jpg)
 
-## Editing
+## The library (left)
 
-- **Import** videos, images and sounds (or drop them on ClipForge), then click a media to place it at the end of its track.
-- **Five tracks**:
-  - **Texts**, on top of everything;
-  - **Video 2**, on top of Video 1 (for picture-in-picture, shrink it);
-  - **Video 1**;
-  - **Sound 1** and **Sound 2**, for music and sound effects.
-- **Dragging a clip** moves it, also to another track of the same kind. **Dragging its edges** trims it. Clips snap to the start, to the playhead and to the edges of other clips.
-- **Cut** (S) cuts the selected clip under the playhead, or every clip under it if none is selected.
-- The square in front of each track mutes or restores it.
-- **Undo** and **Redo** (Ctrl+Z, Ctrl+Y) go back over every change.
+- **Media**: import videos, images and sounds (or drop them on ClipForge), add a **solid background**; a click places the media at the end of its track.
+- **Text**: a plain text or one of 10 ready-made styles (Subtitle, Title, Outline, Neon, Bubble, Retro, Typewriter, Label…).
+- **Stickers**: 40 emojis placed at the playhead.
+- **Effects**: vignette, grain, VHS, glitch, flash, shake, pulse zoom, cinema bars, black and white, blur, pixels, snow, confetti, rain, stars, hearts. They apply to the whole picture below them.
+- **Transitions**: 13 entries and exits (fade, slide, rise, drop, zoom, zoom out, wipe, circle, blur, flash, spin, glitch) for the selected clip.
+- **Filters**: 14 looks previewed on your clip.
 
-## Clip settings
+## Tracks
 
-Click a clip to open its settings:
+Texts 2, Texts, Effects, Overlay (above the video), Video, Sound 1, Sound 2 and Music. Videos show their filmstrip, sounds their waveform.
 
-- **entry**: fade, slide, zoom or wipe, with its duration, and a **fade-out**;
-- **size**, **position** and **fill the frame** for images and videos;
-- **effects**: brightness, contrast, saturation, black and white, sepia, hue, blur, pixels, and one-click looks (Black and white, Old, Vivid, Cold, Night, Retro pixel);
-- **speed** from ×0.25 to ×4 and **volume** up to 200% for videos and sounds;
-- **texts**: several lines, font, colour, size, dark background.
+- **Dragging a clip** moves it, also to another track of the same kind; **dragging its edges** trims it. The 🧲 magnet snaps clips to the start, the playhead and the edges of other clips.
+- Tools: **cut**, **duplicate**, **delete**, **ripple delete**, **freeze frame** (2 s), **detach audio** from a video, undo, redo.
+- The dot in front of each track mutes or restores it.
+
+## Clip settings (right)
+
+- **Picture**: size, position, rotation, opacity, fill the frame, **blurred background**, mirrors.
+- **Animation**: entry and exit transitions with their duration, and a motion during the clip (slow zoom, zoom out, pan, shake, pulse, spin, float).
+- **Colour**: the looks and 8 settings (brightness, contrast, saturation, black and white, sepia, hue, blur, pixels).
+- **Sound**: speed from ×0.1 to ×8, volume up to 200%, fades.
+- **Text**: 8 fonts, colour, size, alignment, outline, shadow (drop, soft, glow), background (band or bubble) and animation (typewriter, word by word, pop, bounce, wave, beat).
 
 ## Export
 
-Choose the **format** (landscape 16:9, portrait 9:16 or square 1:1), then **Export as WebM**. The edit is filmed in real time with its sounds mixed: keep ClipForge open until the end. The video goes to your Downloads.
+With no clip selected, the right panel sets the project: **format** (16:9, 9:16, 1:1, 4:5, 4:3, 21:9), background colour, **quality** (480p, 720p, 1080p), **frames per second** (24, 30, 60) and **file** (WebM, or MP4 when the recorder supports it). **PNG image** saves the picture under the playhead. Export films the edit in real time with its mixed sounds: keep ClipForge open until the end.
 
 ## Controls
 
@@ -39,13 +41,13 @@ Choose the **format** (landscape 16:9, portrait 9:16 or square 1:1), then **Expo
 |---|---|
 | Space | play / pause |
 | S | cut under the playhead |
-| Delete | delete the selected clip |
+| Del / Shift+Del | delete / ripple delete |
+| Ctrl+C / Ctrl+V | copy / paste the clip at the playhead |
+| Ctrl+D | duplicate |
 | ← → | previous / next frame |
-| Home | back to the start |
+| Home | back to start |
 | Ctrl+Z / Ctrl+Y | undo / redo |
 
 ## Data
 
-The edit is kept in the plugin folder, with media of 15 MB or less. A bigger media stays in the list but must be chosen again the next time ClipForge opens (it is marked "To re-import"). Permission: `storage` only.
-
-The text recipes and templates of the old version of ClipForge are no longer used; they stay in the plugin folder.
+The edit is kept in the plugin folder, with media of 15 MB or less. A bigger media stays in the list but must be picked again next time (it is marked "To re-import"). Edits from earlier versions open as they are. Permission: `storage` only.

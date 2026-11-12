@@ -1,5 +1,5 @@
 // lancé par le test « local » de NeoDex : une image, un son et une petite vidéo fabriqués sur place sont importés,
-// posés sur la timeline avec un texte, coupés, annulés, puis le montage est exporté en WebM
+// posés sur la timeline avec un texte, un effet et un autocollant, coupés, annulés, puis le montage est exporté en WebM
 module.exports = async ({ pj, sleep }) => {
   const run = async code => { const r = await pj(code); if (r && r.err) throw new Error(r.err); return r; };
   await sleep(500);
@@ -48,6 +48,25 @@ module.exports = async ({ pj, sleep }) => {
     cf.undo(); cf.undo(); if (Math.abs(C(t.id).start - .3) > .02 || Math.abs(C(s.id).dur - 2) > .02) return {err: 'annuler le glisser'};
     return {ok: 1};
   })()`);
+  // les ajouts façon CapCut : effets, autocollant, styles de texte, transitions, détacher le son, supprimer en refermant le trou
+  await run(`(async () => {
+    const cf = document.querySelector('.cfApp').parentNode.__cf, P = cf.proj, [im, , vi] = window.__cfIds;
+    cf.seek(.5); const e1 = cf.addEffect('vhs'), e2 = cf.addEffect('confettis'); e2.tr = 'e'; e2.start = 2; e2.dur = 1; const st = cf.addSticker('🔥');
+    if (e1.tr !== 'e' || !['t', 't2'].includes(st.tr)) return {err: 'pistes effet/autocollant ' + e1.tr + ' ' + st.tr};
+    const a = P.clips.find(c => c.m === im), tx = P.clips.find(c => c.tr === 't' && !c.sticker); tx.anim = 'machine'; tx.sw = 6; tx.shadow = 'glow';
+    for (const k of ['fondu', 'glisse-g', 'glisse-d', 'monte', 'descend', 'zoom', 'dezoom', 'volet', 'cercle', 'flou', 'flash', 'tourne', 'glitch']) { a.tin = k; a.mot = 'kb'; cf.draw(.2); }
+    for (const k of ['vignette', 'grain', 'vhs', 'glitch', 'flash', 'secousse', 'zoompulse', 'cinema', 'nb', 'flou', 'pixels', 'neige', 'pluie', 'etoiles', 'coeurs']) { e1.eff = k; cf.draw(1); }
+    for (const k of ['mot', 'pop', 'rebond', 'vague', 'battement']) { tx.anim = k; cf.draw(1); }
+    e1.eff = 'vhs'; tx.anim = 'machine'; a.tin = 'zoom'; cf.changed();
+    const v = P.clips.find(c => c.m === vi), n = P.clips.length; cf.sel = v.id; cf.detach();
+    const d = P.clips.find(c => c.m === vi && c.tr[0] === 'a'); if (P.clips.length !== n + 1 || !d || v.vol !== 0) return {err: 'détacher le son'};
+    cf.undo(); if (P.clips.length !== n || P.clips.find(c => c.id === v.id).vol !== 1) return {err: 'annuler le détachement'};
+    cf.sel = P.clips.find(c => c.m === im).id; const vs = P.clips.find(c => c.m === vi).start; cf.rippleDel();
+    if (Math.abs(P.clips.find(c => c.m === vi).start - (vs - 1.5)) > 1e-6) return {err: 'supprimer en refermant le trou'};
+    cf.undo(); if (!P.clips.find(c => c.m === im)) return {err: 'annuler la suppression'};
+    if (document.querySelectorAll('.cfLane[data-tr] .cfClip').length !== P.clips.length) return {err: 'clips affichés'};
+    return {ok: 1};
+  })()`);
   const exp = await run(`(async () => {
     const view = document.querySelector('.cfApp').parentNode, cf = view.__cf, t = performance.now();
     await cf.exportVideo(false); const b = view.__cfLast; if (!b) return {err: 'pas de vidéo exportée'};
@@ -58,5 +77,5 @@ module.exports = async ({ pj, sleep }) => {
   })()`);
   if (!(exp.size > 5000 && exp.w === 1280 && exp.h === 720 && exp.dur > 2 && exp.dur < 4.5)) throw new Error('export : ' + JSON.stringify(exp));
   await sleep(300);
-  return `import (image, son, vidéo), timeline, coupe, annuler et export WebM ok (${(exp.size / 1e3).toFixed(0)} ko, ${exp.dur.toFixed(1)} s, ${exp.w}×${exp.h})`;
+  return `import (image, son, vidéo), timeline, effets, transitions, coupe, annuler et export WebM ok (${(exp.size / 1e3).toFixed(0)} ko, ${exp.dur.toFixed(1)} s, ${exp.w}×${exp.h})`;
 };
