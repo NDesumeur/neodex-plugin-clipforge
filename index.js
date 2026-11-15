@@ -5,15 +5,16 @@
 // l'image sous eux. L'aperçu est un canevas : l'export le filme en temps réel avec MediaRecorder (vidéo + sons mixés par Web Audio).
 const CSS = `
 .cfApp{display:flex;flex-direction:column;gap:8px}
+.appWrap.wide.cfApp{max-width:1760px}
 .cfHead{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .cfHead .label{margin:0;flex:1}
 .cfHead .btn,.cfRow .btn,.cfInsp .btn,.cfBar .btn,.cfTools .btn{width:auto;margin:0;padding:5px 9px}
-.cfTop{display:grid;grid-template-columns:290px minmax(0,1fr) 300px;gap:8px}
-@media (max-width:1150px){.cfTop{grid-template-columns:minmax(0,1fr)}.cfStage{order:-1}.cfCv{max-height:300px}}
-.cfLib,.cfInsp{display:flex;flex-direction:column;gap:6px;height:520px;overflow:auto;min-width:0}
-@media (max-width:1150px){.cfLib,.cfInsp{height:auto;max-height:420px}}
+.cfTop{display:grid;grid-template-columns:clamp(220px,20vw,340px) minmax(0,1fr) clamp(270px,23vw,400px);gap:8px;--cfH:clamp(300px,calc(100vh - 400px),680px)}
+@media (max-width:860px){.cfTop{grid-template-columns:minmax(0,1fr)}.cfStage{order:-1}.cfCv{max-height:300px}}
+.cfLib,.cfInsp{display:flex;flex-direction:column;gap:6px;height:var(--cfH);overflow:auto;min-width:0}
+@media (max-width:860px){.cfLib,.cfInsp{height:auto;max-height:420px}}
 .cfTabs{display:flex;gap:2px;flex-wrap:wrap;border-bottom:2px solid var(--line);padding-bottom:6px;margin-bottom:2px}
-.cfTabs button{background:none;border:2px solid transparent;color:var(--muted);font:11px inherit;padding:4px 6px;cursor:var(--cp,pointer);display:flex;flex-direction:column;align-items:center;gap:1px;min-width:42px}
+.cfTabs button{background:none;border:2px solid transparent;color:var(--muted);font:13px inherit;padding:4px 6px;cursor:var(--cp,pointer);display:flex;flex-direction:column;align-items:center;gap:1px;min-width:42px}
 .cfTabs button b{font-size:16px;line-height:1;font-weight:normal;color:var(--lilac)}
 .cfTabs button.on{border-color:var(--magenta);color:#fff;background:rgba(var(--pkr),.15)}
 .cfTabs button.on b{color:#fff}
@@ -21,50 +22,50 @@ const CSS = `
 .cfMed{display:grid;grid-template-columns:72px minmax(0,1fr) auto;gap:6px;align-items:center;background:var(--bg0);border:2px solid var(--line);padding:4px;cursor:var(--cp,pointer)}
 .cfMed:hover{border-color:var(--magenta)}
 .cfMed.miss{border-color:#ff4fb0;opacity:.75}
-.cfMed .th{width:72px;height:40px;background:#0b0816 center/cover no-repeat;display:flex;align-items:center;justify-content:center;font:12px monospace;color:var(--muted);position:relative}
-.cfMed .th i{position:absolute;right:1px;bottom:1px;background:rgba(0,0,0,.75);color:#fff;font:9px monospace;font-style:normal;padding:0 2px}
-.cfMed b{font-weight:normal;color:#fff;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
-.cfMed small{display:block;color:var(--muted);font-size:11px}
+.cfMed .th{width:72px;height:40px;background:#0b0816 center/cover no-repeat;display:flex;align-items:center;justify-content:center;font:14px monospace;color:var(--muted);position:relative}
+.cfMed .th i{position:absolute;right:1px;bottom:1px;background:rgba(0,0,0,.75);color:#fff;font:11px monospace;font-style:normal;padding:0 2px}
+.cfMed b{font-weight:normal;color:#fff;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.cfMed small{display:block;color:var(--muted);font-size:13px}
 .cfMed .x{color:var(--muted);padding:0 4px}
 .cfMed .x:hover{color:#ff4fb0}
 .cfCards{display:grid;grid-template-columns:repeat(auto-fill,minmax(82px,1fr));gap:6px}
-.cfCard{background:var(--bg0);border:2px solid var(--line);cursor:var(--cp,pointer);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:6px 3px;font-size:11px;color:var(--lilac);text-align:center;min-height:62px;position:relative;overflow:hidden}
+.cfCard{background:var(--bg0);border:2px solid var(--line);cursor:var(--cp,pointer);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:6px 3px;font-size:13px;color:var(--lilac);text-align:center;min-height:62px;position:relative;overflow:hidden}
 .cfCard:hover{border-color:var(--magenta);color:#fff}
 .cfCard.on{border-color:#fff;color:#fff}
 .cfCard .pv{width:100%;height:42px;background:#0b0816 center/cover no-repeat;display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff;overflow:hidden}
 .cfCard.emo{font-size:28px;min-height:48px;padding:2px}
 .cfStage{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0;background:#06040c}
 .cfScreen{flex:1;width:100%;display:flex;align-items:center;justify-content:center;min-height:0;background:repeating-linear-gradient(45deg,#0b0816 0 8px,#0e0a1c 8px 16px)}
-.cfCv{max-width:100%;max-height:430px;background:#000;display:block;box-shadow:0 0 0 2px var(--line)}
+.cfCv{max-width:100%;max-height:calc(var(--cfH) - 80px);background:#000;display:block;box-shadow:0 0 0 2px var(--line)}
 .cfBar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:center;width:100%}
-.cfTime{font:14px monospace;color:#fff;min-width:150px;text-align:center}
+.cfTime{font:16px monospace;color:#fff;min-width:150px;text-align:center}
 .cfTime small{color:var(--muted)}
-.cfInsp{font-size:12px;color:var(--lilac)}
-.cfInfo{font:11px monospace;color:var(--muted)}
-.cfP{display:grid;grid-template-columns:96px minmax(0,1fr) 52px;gap:6px;align-items:center}
-.cfP b{font:11px monospace;color:#fff;text-align:right;font-weight:normal}
-.cfP select,.cfP input[type=color]{width:100%;box-sizing:border-box;background:var(--bg0);color:#fff;border:2px solid var(--line);font:12px inherit;padding:2px}
-.cfSub{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-top:6px}
+.cfInsp{font-size:14px;color:var(--lilac)}
+.cfInfo{font:13px monospace;color:var(--muted)}
+.cfP{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr) 40px;gap:6px;align-items:center}
+.cfP b{font:13px monospace;color:#fff;text-align:right;font-weight:normal}
+.cfP select,.cfP input[type=color]{width:100%;box-sizing:border-box;background:var(--bg0);color:#fff;border:2px solid var(--line);font:14px inherit;padding:2px}
+.cfSub{font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-top:6px}
 .cfRange{-webkit-appearance:none;appearance:none;height:10px;background:var(--bg0);border:2px solid var(--line);outline:none;width:100%}
 .cfRange::-webkit-slider-thumb{-webkit-appearance:none;width:10px;height:20px;background:var(--magenta);border:2px solid #000;cursor:var(--cp,pointer)}
-.cfInsp textarea{width:100%;box-sizing:border-box;min-height:64px;resize:vertical;background:var(--bg0);color:#fff;border:2px solid var(--line);font:13px inherit;padding:6px}
-.cfHelp{font-size:12px;color:var(--muted);line-height:1.55;margin:0}
-.cfTools{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.cfInsp textarea{width:100%;box-sizing:border-box;min-height:64px;resize:vertical;background:var(--bg0);color:#fff;border:2px solid var(--line);font:15px inherit;padding:6px}
+.cfHelp{font-size:14px;color:var(--muted);line-height:1.55;margin:0}
+.cfTools{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:14px;color:var(--muted)}
 .cfTools .cfRange{width:140px}
 .cfTools .sp{flex:1}
-.cfTl{display:grid;grid-template-columns:118px minmax(0,1fr);background:#0b0816;border:2px solid var(--line);user-select:none}
-.cfHeads>div{border-top:2px solid var(--line);display:flex;align-items:center;gap:6px;padding:0 6px;font-size:12px;color:var(--lilac);box-sizing:border-box;background:var(--bg0)}
+.cfTl{display:grid;grid-template-columns:140px minmax(0,1fr);background:#0b0816;border:2px solid var(--line);user-select:none}
+.cfHeads>div{border-top:2px solid var(--line);display:flex;align-items:center;gap:6px;padding:0 6px;font-size:14px;color:var(--lilac);box-sizing:border-box;background:var(--bg0)}
 .cfHeads>.rh{height:24px;border-top:0}
-.cfHeads .ic{width:18px;text-align:center;font-size:13px}
-.cfHeads .m{cursor:var(--cp,pointer);font:13px monospace;color:#fff;margin-left:auto}
+.cfHeads .ic{width:18px;text-align:center;font-size:15px}
+.cfHeads .m{cursor:var(--cp,pointer);font:15px monospace;color:#fff;margin-left:auto}
 .cfHeads .off{color:var(--muted);text-decoration:line-through}
 .cfScroll{overflow-x:auto;overflow-y:hidden;min-width:0}
 .cfLanes{position:relative;touch-action:none}
 .cfRuler{height:24px;position:relative;cursor:var(--cp,pointer);background:#0b0816;overflow:hidden;background-image:linear-gradient(90deg,var(--line) 1px,transparent 1px);background-position:0 16px;background-repeat:repeat-x}
-.cfRuler i{position:absolute;top:0;height:24px;border-left:2px solid var(--line);font:10px monospace;color:var(--muted);padding-left:3px;font-style:normal;box-sizing:border-box}
+.cfRuler i{position:absolute;top:0;height:24px;border-left:2px solid var(--line);font:12px monospace;color:var(--muted);padding-left:3px;font-style:normal;box-sizing:border-box}
 .cfLane{border-top:2px solid var(--line);position:relative;box-sizing:border-box}
 .cfLane.k-t{background:#130f1f}.cfLane.k-e{background:#0d1714}.cfLane.k-v{background:#100c18}.cfLane.k-a{background:#0c1216}
-.cfClip{position:absolute;top:3px;bottom:3px;border:2px solid #000;box-sizing:border-box;overflow:hidden;font-size:11px;padding:2px 9px;white-space:nowrap;cursor:grab;background-repeat:repeat-x;background-size:auto 100%}
+.cfClip{position:absolute;top:3px;bottom:3px;border:2px solid #000;box-sizing:border-box;overflow:hidden;font-size:13px;padding:2px 9px;white-space:nowrap;cursor:grab;background-repeat:repeat-x;background-size:auto 100%}
 .cfClip.k-video{background-color:#ff4fb0}.cfClip.k-image{background-color:#b48cff}.cfClip.k-t{background-color:#ffd84a}.cfClip.k-e{background-color:#3ad0a0}
 .cfClip.k-audio{background-color:#1d6b55;background-size:100% 100%;background-repeat:no-repeat}
 .cfClip.miss{background-color:#5a2a3a}
@@ -170,7 +171,7 @@ export default async function (ctx) {
 
   // ---------- l'interface ----------
   view.innerHTML = '';
-  const app = el('div', 'appWrap cfApp'), head = el('div', 'cfHead'), top = el('div', 'cfTop');
+  const app = el('div', 'appWrap wide cfApp'), head = el('div', 'cfHead'), top = el('div', 'cfTop');
   const lib = el('div', 'sysCard px cfLib'), stage = el('div', 'sysCard px cfStage'), insp = el('div', 'sysCard px cfInsp');
   const screen = el('div', 'cfScreen'), cv = el('canvas', 'cfCv'), g = cv.getContext('2d'), bar = el('div', 'cfBar'), time = el('span', 'cfTime');
   cv.id = 'cf_cv'; time.translate = false;

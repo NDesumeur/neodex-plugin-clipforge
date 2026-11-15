@@ -51,3 +51,7 @@ Sans clip choisi, le panneau de droite règle le projet : **format** (16:9, 9:16
 ## Données
 
 Le montage est gardé dans le dossier du plugin, avec les médias de 15 Mo au plus. Un média plus gros reste dans la liste mais il faut le choisir à nouveau à la prochaine ouverture (il est marqué « À réimporter »). Les montages des versions d'avant s'ouvrent tels quels. Autorisation : `storage` seulement.
+
+## Taille de l’écran (3.0.1)
+
+Les trois colonnes (médias, aperçu, réglages) et la hauteur de l’aperçu suivent la taille de la fenêtre : sur un petit portable, la timeline reste visible sous l’aperçu ; sur un grand écran, ClipForge prend toute la largeur. Les petits textes sont plus grands.

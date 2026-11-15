@@ -51,3 +51,7 @@ With no clip selected, the right panel sets the project: **format** (16:9, 9:16,
 ## Data
 
 The edit is kept in the plugin folder, with media of 15 MB or less. A bigger media stays in the list but must be picked again next time (it is marked "To re-import"). Edits from earlier versions open as they are. Permission: `storage` only.
+
+## Screen size (3.0.1)
+
+The three columns (media, preview, settings) and the preview height follow the window size: on a small laptop the timeline stays visible below the preview; on a large screen ClipForge uses the full width. Small text is larger.
