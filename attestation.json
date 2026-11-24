@@ -1,9 +1,9 @@
 {
   "pluginId": "neodex.clipforge",
   "repo": "NDesumeur/neodex-plugin-clipforge",
-  "version": "3.0.1",
-  "sha256": "cfb4af5afb9e94847a7a2b13e05ada7113724d2629e770ac0517d9674f3ad1b8",
-  "approvedAt": "2026-11-16T04:14:34.864Z",
+  "version": "3.1.0",
+  "sha256": "59e8d4e6bf7badf357db64ed73ca877f5c7a89adf2998ca6c35653e018aad1d1",
+  "approvedAt": "2026-11-24T15:56:19.678Z",
   "neobase": ">=4.0.0",
-  "signature": "fS6vABKAR38Jgi+adCGv7R5C7t4nO/s3HnfmSKUfpBGgPkOhdZph41RxMR8NMQnznlAkp6Xhedyguzk1xZHDCg=="
+  "signature": "WG2LhX3vUiLqLQ1N7VgmmqfOswE7AO8c9heN5M59JnlbVv2UNouiCByFV6zACGyMjI4KkryKX8REyRGcDoi8CA=="
 }
