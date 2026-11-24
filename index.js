@@ -96,7 +96,20 @@ const TRANS = {fondu: 'Fondu', 'glisse-g': 'Glisse ←', 'glisse-d': 'Glisse →
 const MOTIONS = {'': 'Aucun', kb: 'Zoom lent', kbo: 'Dézoom lent', pand: 'Panoramique →', pang: 'Panoramique ←', shake: 'Secousse', pulse: 'Pulsation', spin: 'Rotation', float: 'Flottement'};
 const FONTS = {gras: ['Gras', 'bold {}px sans-serif'], normal: ['Normal', '{}px sans-serif'], machine: ['Machine à écrire', 'bold {}px monospace'], titre: ['Titre', 'bold {}px serif'],
   impact: ['Impact', '{}px Impact, "Arial Black", sans-serif'], ronde: ['Ronde', 'bold {}px "Comic Sans MS", "Trebuchet MS", sans-serif'], fine: ['Fine', '300 {}px "Segoe UI", sans-serif'], italique: ['Italique', 'italic bold {}px Georgia, serif']};
-const TANIMS = {'': 'Aucune', machine: 'Machine à écrire', mot: 'Mot par mot', pop: 'Pop', rebond: 'Rebond', vague: 'Vague', battement: 'Battement'};
+const TANIMS = {'': 'Aucune', machine: 'Machine à écrire', mot: 'Mot par mot', karaoke: 'Karaoké (mot éclairé)', pop: 'Pop', rebond: 'Rebond', vague: 'Vague', battement: 'Battement'};
+// les sous-titres SRT et WebVTT : [{s, e, text}] en secondes ; et l'inverse, en SRT
+const subTime = x => { const m = /(?:(\d+):)?(\d{1,2}):(\d{2})[.,](\d{1,3})/.exec(x); return m ? (+m[1] || 0) * 3600 + +m[2] * 60 + +m[3] + +m[4].padEnd(3, '0') / 1000 : NaN; };
+function parseSubs(txt) {
+  const out = [];
+  for (const blk of String(txt).replace(/\r/g, '').split(/\n\s*\n/)) {
+    const ls = blk.split('\n'), i = ls.findIndex(l => l.includes('-->')); if (i < 0) continue;
+    const [a, b] = ls[i].split('-->'), s = subTime(a), e = subTime(b), text = ls.slice(i + 1).join('\n').replace(/<[^>]+>/g, '').trim();
+    if (text && e > s) out.push({s, e, text});
+  }
+  return out;
+}
+const srtTime = t => { const ms = Math.round(t * 1000), p = (n, l = 2) => String(n).padStart(l, '0'); return p(Math.floor(ms / 36e5)) + ':' + p(Math.floor(ms / 6e4) % 60) + ':' + p(Math.floor(ms / 1e3) % 60) + ',' + p(ms % 1000, 3); };
+const toSrt = cues => cues.map((c, i) => (i + 1) + '\n' + srtTime(c.s) + ' --> ' + srtTime(c.e) + '\n' + c.text + '\n').join('\n');
 // les styles de texte tout prêts
 const TSTYLES = {
   'Sous-titre': {font: 'gras', size: 48, col: '#ffffff', bg: 'box', bgCol: '#000000', sw: 0, shadow: '', y: .85},
@@ -220,7 +233,35 @@ export default async function (ctx) {
     urls.set(m.id, url); imgs.delete(m.id); for (const c of proj.clips) if (c.m === m.id) drop(c.id);
     await keep(m, f); if (!into) proj.media.push(m); save(); drawLib(); refresh(); return m;
   }
-  const importFiles = async fs => { for (const f of fs) await addFile(f); };
+  const isSub = f => /\.(srt|vtt)$/i.test(f.name);
+  const importFiles = async fs => { for (const f of fs) await (isSub(f) ? importSubs(f) : addFile(f)); };
+  // ---------- les sous-titres : fichier SRT/VTT, export SRT, et calage au clavier ----------
+  function addSub(s, e, text) { const t = addText(true); Object.assign(t, JSON.parse(JSON.stringify(TSTYLES['Sous-titre'])), {tr: 't', start: s, dur: Math.max(.2, e - s), text, fin: .1, fout: .1}); return t; }
+  async function importSubs(f) {
+    const cues = parseSubs(typeof f === 'string' ? f : await f.text()); if (!cues.length) { toast('Aucun sous-titre lisible dans ce fichier'); return 0; }
+    snap(); proj.clips = proj.clips.filter(c => c.tr !== 't' || c.sticker);  // les anciens sous-titres de la piste Textes sont remplacés
+    for (const q of cues) addSub(q.s, q.e, q.text);
+    changed(); toast(cues.length + ' sous-titres posés sur la piste Textes'); return cues.length;
+  }
+  const subCues = () => proj.clips.filter(c => (c.tr === 't' || c.tr === 't2') && !c.sticker && c.text).sort((a, b) => a.start - b.start).map(c => ({s: c.start, e: c.start + c.dur, text: c.text}));
+  function exportSrt() { const q = subCues(); if (!q.length) return toast('Aucun texte à exporter'); const a = el('a'); a.href = URL.createObjectURL(new Blob([toSrt(q)], {type: 'text/plain'})); a.download = 'sous-titres.srt'; document.body.append(a); a.click(); a.remove(); toast(q.length + ' sous-titres exportés'); }
+  // le calage : tu colles ton texte, la lecture démarre, et chaque appui sur Entrée termine la phrase en cours
+  let tap = null;
+  async function startTap(txt) {
+    txt ??= await ctx.host.ask?.('Colle le texte dit dans la vidéo', '', 'Une phrase par point, ou sépare-les par « / ». Ensuite, appuie sur Entrée à la fin de chaque phrase.');
+    const ph = String(txt || '').split(/\s*\/\s*|(?<=[.!?…])\s+/).map(x => x.trim()).filter(Boolean); if (!ph.length) return;
+    snap(); tap = {ph, i: 0, from: T}; if (!playing) start(); toast('Phrase 1/' + ph.length + ' : « ' + ph[0].slice(0, 40) + ' » · Entrée à la fin, Échap pour arrêter');
+  }
+  function tapNext() {
+    const p = tap; if (T - p.from < .2) return; addSub(p.from, T, p.ph[p.i]); p.from = T; p.i++;
+    if (p.i >= p.ph.length) { tap = null; stop(); toast('Sous-titres calés : ' + p.ph.length); } else toast('Phrase ' + (p.i + 1) + '/' + p.ph.length + ' : « ' + p.ph[p.i].slice(0, 40) + ' »');
+    save(); refresh();
+  }
+  // I et O : le clip choisi commence ou finit à la tête de lecture (le reste est coupé)
+  function trim(side) {
+    const c = clipOf(sel); if (!c || !isOn(c, T) || T - c.start < .05 || c.start + c.dur - T < .05) return toast('Place la tête de lecture dans le clip choisi');
+    snap(); if (side === 'in') { const d = T - c.start; c.inn += d * c.speed; c.dur -= d; c.start = T; c.fin = Math.min(c.fin, c.dur); } else c.dur = T - c.start; changed();
+  }
   view.addEventListener('dragover', e => e.preventDefault());
   view.addEventListener('drop', e => { e.preventDefault(); importFiles([...e.dataTransfer.files]); });
   async function removeMedia(m) {
@@ -257,7 +298,10 @@ export default async function (ctx) {
       const cards = el('div', 'cfCards');
       for (const [n, s] of Object.entries(TSTYLES)) { const pv = el('div', 'pv'); pv.textContent = 'Aa'; pv.style.cssText = `font:${(FONTS[s.font] || FONTS.gras)[1].replace('{}', 20)};color:${s.col};${s.bg ? `background:${s.bgCol}` : ''};${s.sw ? `-webkit-text-stroke:1px ${s.stroke}` : ''};${s.shadow === 'glow' ? `text-shadow:0 0 6px ${s.shCol}` : s.shadow === 'drop' ? `text-shadow:2px 2px 0 ${s.shCol}` : ''}`;
         const d = card(n, pv, () => { const t = addText(); Object.assign(t, JSON.parse(JSON.stringify(s)), {text: n === 'Sous-titre' ? 'Ton sous-titre' : 'Ton texte'}); changed(); }); d.dataset.style = n; cards.append(d); }
-      lib.append(cards, el('p', 'cfHelp', 'Le texte se pose à la tête de lecture. Règle ensuite son animation et ses couleurs à droite.'));
+      const sub = el('div', 'cfRow'), subIn = el('input'); subIn.type = 'file'; subIn.accept = '.srt,.vtt'; subIn.hidden = true; subIn.onchange = () => { const f = subIn.files[0]; subIn.value = ''; if (f) importSubs(f); };
+      sub.append(btn('CALER UN TEXTE', () => startTap()), btn('IMPORTER SRT/VTT', () => subIn.click()), btn('EXPORTER SRT', exportSrt), subIn);
+      lib.append(cards, el('p', 'cfHelp', 'Le texte se pose à la tête de lecture. Règle ensuite son animation et ses couleurs à droite.'), el('span', 'cfSub', 'Sous-titres'), sub,
+        el('p', 'cfHelp', 'Caler un texte : colle ce qui est dit, la lecture démarre, appuie sur Entrée à la fin de chaque phrase. Un fichier .srt ou .vtt (fait par Whisper, YouTube…) se pose aussi par glisser-déposer.'));
     } else if (libTab === 'stick') {
       const cards = el('div', 'cfCards'); for (const s of STICKERS) { const d = card(s, null, () => addSticker(s), 'emo'); d.title = 'Ajouter'; d.dataset.sticker = s; cards.append(d); }
       lib.append(cards, el('p', 'cfHelp', 'Un autocollant se pose à la tête de lecture, sur une piste de textes. Donne-lui un mouvement (pulsation, rotation, flottement) dans Animation.'));
@@ -289,9 +333,9 @@ export default async function (ctx) {
     snap(); const c = {...base(), tr, m: m.id, start: endOf(tr), dur: m.type === 'image' ? 4 : m.dur};
     proj.clips.push(c); sel = c.id; changed(); return c;
   }
-  function addText() {
-    snap(); const c = {...base(), tr: freeAt(['t', 't2'], T, 3), m: null, start: T, dur: 3, text: 'Ton texte', size: 64, col: '#ffffff', font: 'gras', bg: 'box', bgCol: '#000000', sw: 0, stroke: '#000000', shadow: '', shCol: '#000000', anim: '', ad: .8, align: 'center', y: .82, fin: .4, fout: .4};
-    proj.clips.push(c); sel = c.id; changed(); return c;
+  function addText(quiet) {
+    if (!quiet) snap(); const c = {...base(), tr: freeAt(['t', 't2'], T, 3), m: null, start: T, dur: 3, text: 'Ton texte', size: 64, col: '#ffffff', font: 'gras', bg: 'box', bgCol: '#000000', sw: 0, stroke: '#000000', shadow: '', shCol: '#000000', anim: '', ad: .8, align: 'center', y: .82, fin: .4, fout: .4};
+    proj.clips.push(c); sel = c.id; if (!quiet) changed(); return c;
   }
   function addSticker(s) { const c = addText(); Object.assign(c, {text: s, sticker: true, size: 140, bg: '', y: .3, x: .75, fin: .3, fout: .3, tin: 'zoom', tout: 'zoom', mot: 'pulse'}); changed(); return c; }
   function addEffect(k) { snap(); const c = {...base(), tr: 'e', m: null, start: T, dur: 3, eff: k, amt: 60, fin: 0, fout: 0}; proj.clips.push(c); sel = c.id; changed(); return c; }
@@ -388,19 +432,19 @@ export default async function (ctx) {
     g.lineJoin = 'round'; g.strokeStyle = c.stroke || '#000'; g.lineWidth = c.sw ?? Math.max(2, fs / 7);
     if (c.shadow === 'glow') { g.shadowColor = c.shCol || '#ff4fb0'; g.shadowBlur = fs * .5; } else if (c.shadow === 'drop') { g.shadowColor = c.shCol || '#000'; g.shadowOffsetX = g.shadowOffsetY = fs * .07; } else if (c.shadow === 'soft') { g.shadowColor = c.shCol || '#000'; g.shadowBlur = fs * .3; g.shadowOffsetY = fs * .06; }
     const all = lines.join(''), shown = c.anim === 'machine' ? Math.floor(all.length * ap) : c.anim === 'mot' ? -1 : all.length;
-    const words = c.anim === 'mot' ? all.split(/\s+/).length : 0, wShown = Math.ceil(words * ap);
+    const words = c.anim === 'mot' || c.anim === 'karaoke' ? all.split(/\s+/).length : 0, wShown = Math.ceil(words * ap), wNow = Math.floor(words * clamp(u / Math.max(.05, c.dur), 0, .999));  // karaoké : le mot dit en ce moment, réparti sur toute la durée du texte
     let n = 0, wi = 0;
     lines.forEach((l, li) => {
       const y = -h / 2 + lh * (li + .5), x0 = c.align === 'left' ? -w / 2 : c.align === 'right' ? w / 2 - widths[li] : -widths[li] / 2;
       if (!c.anim || c.anim === 'pop' || c.anim === 'rebond' || c.anim === 'battement') { if (c.sw !== 0 && !c.sticker) g.strokeText(l, x0, y); g.fillStyle = c.col || '#fff'; g.fillText(l, x0, y); n += l.length; return; }
       let x = x0;
       for (const ch of l) {  // lettre par lettre : machine à écrire, mot par mot, vague
-        if (ch === ' ' && c.anim === 'mot') wi++;
+        if (ch === ' ' && words) wi++;
         const vis = c.anim === 'machine' ? n < shown : c.anim === 'mot' ? wi < wShown : true, yy = y + (c.anim === 'vague' ? Math.sin(u * 5 - n * .45) * fs * .15 : 0);
-        if (vis) { if (c.sw !== 0 && !c.sticker) g.strokeText(ch, x, yy); g.fillStyle = c.col || '#fff'; g.fillText(ch, x, yy); }
+        if (vis) { if (c.sw !== 0 && !c.sticker) g.strokeText(ch, x, yy); g.fillStyle = c.anim === 'karaoke' && wi === wNow ? c.hi || '#ffd84a' : c.col || '#fff'; g.fillText(ch, x, yy); }
         x += g.measureText(ch).width; n++;
       }
-      if (c.anim === 'mot') wi++;
+      if (words) wi++;
     });
     if (c.anim === 'machine' && ap < 1 && Math.floor(u * 3) % 2 === 0) { g.fillStyle = c.col || '#fff'; g.shadowColor = 'transparent'; g.fillRect(w / 2 + fs * .1, -fs * .5, fs * .08, fs); }  // le curseur qui clignote
   }
@@ -487,12 +531,13 @@ export default async function (ctx) {
   function loop() {
     if (!playing) return;
     T = t0 + (performance.now() - p0) / 1000;
-    if (T >= total()) { T = total(); stop(); rec?.r.stop(); return; }
+    if (T >= total() && (!tap || T > total() + 60)) {  // pendant le calage, la lecture continue après la fin (le dernier sous-titre peut dépasser)
+    T = total(); stop(); rec?.r.stop(); return; }
     sync(T, true); draw(T); movePh(true);
     if (rec) expBtn.textContent = 'ANNULER · ' + Math.floor(T / Math.max(.1, total()) * 100) + ' %';
     raf = requestAnimationFrame(loop);
   }
-  function start() { if (!proj.clips.length) return; audio(); if (T >= total() - .02) T = 0; playing = true; t0 = T; p0 = performance.now(); playB.textContent = '❚❚'; loop(); }
+  function start() { if (!proj.clips.length) return; audio(); if (T >= total() - .02 && !tap) T = 0; playing = true; t0 = T; p0 = performance.now(); playB.textContent = '❚❚'; loop(); }
   function stop() { playing = false; cancelAnimationFrame(raf); for (const e of els.values()) e.pause(); playB.textContent = '▶'; sync(T, false); draw(T); movePh(); }
   const toggle = () => { if (rec) return cancelExport(); playing ? stop() : start(); };
   function seek(t) { T = clamp(t, 0, total() + 30); if (playing) { t0 = T; p0 = performance.now(); } sync(T, playing); draw(T); movePh(); }
@@ -649,7 +694,7 @@ export default async function (ctx) {
     }
     if (inspTab === 'pos' && k === 't') insp.append(...place());
     if (inspTab === 'anim') {
-      if (k === 't' && !c.sticker) insp.append(choice('Animation', TANIMS, () => c.anim || '', v => { c.anim = v; }), slider('Durée anim.', () => c.ad ?? .8, v => { c.ad = v; }, .1, 4, .1, sec));
+      if (k === 't' && !c.sticker) insp.append(choice('Animation', TANIMS, () => c.anim || '', v => { c.anim = v; drawInsp(); }), c.anim === 'karaoke' ? color('Mot éclairé', () => c.hi || '#ffd84a', v => { c.hi = v; }) : slider('Durée anim.', () => c.ad ?? .8, v => { c.ad = v; }, .1, 4, .1, sec));
       insp.append(el('span', 'cfSub', 'Entrée'), choice('Transition', TRANS, () => c.tin || 'fondu', v => { c.tin = v; }), slider('Durée', () => c.fin, v => { c.fin = Math.min(v, c.dur); }, 0, 3, .1, sec),
         el('span', 'cfSub', 'Sortie'), choice('Transition ', TRANS, () => c.tout || 'fondu', v => { c.tout = v; }), slider('Durée ', () => c.fout, v => { c.fout = Math.min(v, c.dur); }, 0, 3, .1, sec),
         el('span', 'cfSub', 'Pendant le clip'), choice('Mouvement', MOTIONS, () => c.mot || '', v => { c.mot = v; }));
@@ -685,11 +730,14 @@ export default async function (ctx) {
     if (e.ctrlKey && k === 'z') { e.preventDefault(); undo(); } else if (e.ctrlKey && k === 'y') { e.preventDefault(); redo(); }
     else if (e.ctrlKey && k === 'c') copy(); else if (e.ctrlKey && k === 'v') paste(); else if (e.ctrlKey && k === 'd') { e.preventDefault(); dup(); }
     else if (e.ctrlKey || e.altKey || e.metaKey) return;
+    else if (tap && k === 'enter') { e.preventDefault(); tapNext(); } else if (tap && k === 'escape') { tap = null; stop(); toast('Calage arrêté'); save(); }
+    else if (k === 'k') { if (playing) stop(); } else if (k === 'l') { if (!playing) start(); } else if (k === 'j') seek(T - (e.shiftKey ? 5 : 1));
+    else if (k === 'i') trim('in'); else if (k === 'o') trim('out');
     else if (k === ' ') { e.preventDefault(); toggle(); } else if (k === 's') cut(); else if (k === 'delete' || k === 'backspace') (e.shiftKey ? rippleDel : del)();
     else if (k === 'home') seek(0); else if (k === 'arrowleft') seek(T - 1 / 30); else if (k === 'arrowright') seek(T + 1 / 30);
   });
   new ResizeObserver(() => drawTl()).observe(scroll);
   resize(); drawLib(); refresh(); drawInsp();
   // pour le test « local » de NeoDex
-  view.__cf = {proj, addFile, addText, addClip, addSticker, addEffect, cut, seek, undo, exportVideo, changed, rippleDel, detach, freeze, draw, get T() { return T; }, get sel() { return sel; }, set sel(v) { sel = v; drawInsp(); drawTl(); }};
+  view.__cf = {proj, importSubs, subCues, toSrt, parseSubs, startTap, tapNext, trim, addFile, addText, addClip, addSticker, addEffect, cut, seek, undo, exportVideo, changed, rippleDel, detach, freeze, draw, get T() { return T; }, get sel() { return sel; }, set sel(v) { sel = v; drawInsp(); drawTl(); }};
 }

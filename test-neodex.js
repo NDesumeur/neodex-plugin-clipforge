@@ -76,6 +76,19 @@ module.exports = async ({ pj, sleep }) => {
     return {size: b.size, dur: v.duration, w: v.videoWidth, h: v.videoHeight, ms: Math.round(performance.now() - t)};
   })()`);
   if (!(exp.size > 5000 && exp.w === 1280 && exp.h === 720 && exp.dur > 2 && exp.dur < 4.5)) throw new Error('export : ' + JSON.stringify(exp));
+  // les sous-titres : un SRT posé sur la piste Textes, l'aller-retour SRT, le WebVTT, le calage au clavier, et la coupe au I et au O
+  const sub = await run(`(async () => {
+    const cf = document.querySelector('.cfApp').parentNode.__cf, P = cf.proj;
+    const n = await cf.importSubs('1\\n00:00:00,200 --> 00:00:01,500\\nBonjour à tous\\n\\n2\\n00:00:01,600 --> 00:00:03,000\\nOn monte une vidéo\\n');
+    const st = P.clips.filter(c => c.tr === 't' && !c.sticker); if (n !== 2 || st.length !== 2 || Math.abs(st[1].start - 1.6) > .01) return {err: 'import SRT : ' + n};
+    const back = cf.parseSubs(cf.toSrt(cf.subCues())); if (back.length < 2 || back[0].text !== 'Bonjour à tous') return {err: 'aller-retour SRT'};
+    const v = cf.parseSubs('WEBVTT\\n\\n00:01.000 --> 00:02.500\\n<b>Salut</b>\\n'); if (v.length !== 1 || v[0].s !== 1 || v[0].text !== 'Salut') return {err: 'WebVTT ' + JSON.stringify(v)};
+    cf.seek(3.2); await cf.startTap('Première phrase. Deuxième phrase.'); await new Promise(r => setTimeout(r, 700)); cf.tapNext(); await new Promise(r => setTimeout(r, 600)); cf.tapNext();
+    const tapped = P.clips.filter(c => c.text === 'Première phrase.' || c.text === 'Deuxième phrase.'); if (tapped.length !== 2 || !(tapped[0].dur > .4)) return {err: 'calage : ' + tapped.length};
+    const k = st[1]; cf.sel = k.id; cf.seek(2); cf.trim('in'); cf.seek(2.6); cf.trim('out'); if (Math.abs(k.start - 2) > .02 || Math.abs(k.dur - .6) > .02) return {err: 'I/O : ' + k.start + ' ' + k.dur};
+    k.anim = 'karaoke'; k.dur = 1.1; cf.changed(); cf.seek(2.8); cf.sel = null; cf.sel = k.id;
+    return {n, tapped: tapped.length};
+  })()`);
   await sleep(300);
-  return `import (image, son, vidéo), timeline, effets, transitions, coupe, annuler et export WebM ok (${(exp.size / 1e3).toFixed(0)} ko, ${exp.dur.toFixed(1)} s, ${exp.w}×${exp.h})`;
+  return `sous-titres (SRT, VTT, calage ${sub.tapped}, I/O, karaoké) ok · import (image, son, vidéo), timeline, effets, transitions, coupe, annuler et export WebM ok (${(exp.size / 1e3).toFixed(0)} ko, ${exp.dur.toFixed(1)} s, ${exp.w}×${exp.h})`;
 };

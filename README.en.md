@@ -6,6 +6,10 @@ NeoDex's video editor, in the spirit of CapCut: an 8-track timeline, 13 transiti
 
 ![ClipForge](screenshots/1.jpg)
 
+## Subtitles (new in 3.1.0)
+
+Time a script from the keyboard (Enter at the end of each sentence), import and export SRT or VTT subtitles, a Karaoke animation that lights up each word, J, K, L, I and O shortcuts.
+
 ## The library (left)
 
 - **Media**: import videos, images and sounds (or drop them on ClipForge), add a **solid background**; a click places the media at the end of its track.
@@ -31,6 +35,15 @@ Texts 2, Texts, Effects, Overlay (above the video), Video, Sound 1, Sound 2 and 
 - **Sound**: speed from ×0.1 to ×8, volume up to 200%, fades.
 - **Text**: 8 fonts, colour, size, alignment, outline, shadow (drop, soft, glow), background (band or bubble) and animation (typewriter, word by word, pop, bounce, wave, beat).
 
+## Subtitles (3.1.0)
+
+In the Text tab:
+
+- **Time a script**: paste what is said in the video, playback starts, and you press Enter at the end of each sentence. Each sentence becomes a subtitle in the right place.
+- **Import SRT/VTT**: a subtitle file (made by Whisper, YouTube or another tool) lands on the Texts track; you can also drop it into the window.
+- **Export SRT**: every text in the edit, as an .srt file.
+- The **Karaoke** animation lights up each word in turn, across the whole text.
+
 ## Export
 
 With no clip selected, the right panel sets the project: **format** (16:9, 9:16, 1:1, 4:5, 4:3, 21:9), background colour, **quality** (480p, 720p, 1080p), **frames per second** (24, 30, 60) and **file** (WebM, or MP4 when the recorder supports it). **PNG image** saves the picture under the playhead. Export films the edit in real time with its mixed sounds: keep ClipForge open until the end.
@@ -40,6 +53,9 @@ With no clip selected, the right panel sets the project: **format** (16:9, 9:16,
 | Key | Action |
 |---|---|
 | Space | play / pause |
+| J / K / L | back one second (Shift: five) / pause / play |
+| I / O | the selected clip starts / ends at the playhead |
+| Enter / Escape | while timing subtitles: end of sentence / stop |
 | S | cut under the playhead |
 | Del / Shift+Del | delete / ripple delete |
 | Ctrl+C / Ctrl+V | copy / paste the clip at the playhead |
